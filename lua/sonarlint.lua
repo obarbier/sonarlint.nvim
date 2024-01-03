@@ -1,8 +1,8 @@
 local M = {}
 
 M.client_id = nil
-M.classpaths_result = nil
 
+local java = require("sonarlint.java")
 local utils = require("sonarlint.utils")
 
 local function init_with_config_notify(original_init, original_settings)
@@ -62,28 +62,7 @@ local function start_sonarlint_lsp(user_config)
       return false
    end
 
-   config.handlers["sonarlint/getJavaConfig"] = function(err, uri)
-      local is_test_file = false
-      if M.classpaths_result then
-         local err, is_test_file_result = require("jdtls.util").execute_command({
-            command = "java.project.isTestFile",
-            arguments = { uri },
-         })
-         is_test_file = is_test_file_result
-      end
-
-      local classpaths_result = M.classpaths_result or {}
-
-      return {
-         projectRoot = classpaths_result.projectRoot
-            or "file:" .. vim.lsp.get_client_by_id(M.client_id).config.root_dir,
-         -- TODO: how to get source level from jdtls?
-         sourceLevel = "11",
-         classpath = classpaths_result.classpaths or {},
-         isTest = is_test_file,
-         -- TODO vmLocation
-      }
-   end
+   config.handlers["sonarlint/getJavaConfig"] = java.get_java_config_handler
 
    config.handlers["sonarlint/needCompilationDatabase"] = function(err, uri)
       local locations = vim.fs.find("compile_commands.json", {
@@ -161,32 +140,6 @@ local function start_sonarlint_lsp(user_config)
    return vim.lsp.start_client(config)
 end
 
-function M._handle_progress(err, msg, info)
-   local client = vim.lsp.get_client_by_id(info.client_id)
-
-   if client.name ~= "jdtls" then
-      return
-   end
-   if msg.value.kind ~= "end" then
-      return
-   end
-
-   -- TODO: checking the message text seems a little bit brittle. Is there a better way to
-   -- determine if jdtls has classpath information ready
-   if msg.value.message ~= "Synchronizing projects" then
-      return
-   end
-
-   require("jdtls.util").with_classpaths(function(result)
-      M.classpaths_result = result
-
-      local sonarlint = vim.lsp.get_client_by_id(M.client_id)
-      sonarlint.notify("sonarlint/didClasspathUpdate", {
-         projectUri = result.projectRoot,
-      })
-   end)
-end
-
 function M.setup(config)
    if not config.filetypes then
       vim.notify("Please, provide filetypes as a list of filetype.", vim.log.levels.WARN)
@@ -194,10 +147,10 @@ function M.setup(config)
    end
 
    local pattern = {}
-   local java = false
+   local attach_to_jdtls = false
    for i, filetype in ipairs(config.filetypes) do
       if filetype == "java" then
-         java = true
+         attach_to_jdtls = true
       end
       table.insert(pattern, filetype)
    end
@@ -215,7 +168,7 @@ function M.setup(config)
       end,
    })
 
-   if java then
+   if attach_to_jdtls then
       local ok, jdtls_util = pcall(function()
          return require("jdtls.util")
       end)
@@ -231,10 +184,10 @@ function M.setup(config)
          local old_handler = vim.lsp.handlers["$/progress"]
          vim.lsp.handlers["$/progress"] = function(...)
             old_handler(...)
-            M._handle_progress(...)
+            java.handle_progress(...)
          end
       else
-         vim.lsp.handlers["$/progress"] = M._handle_progress
+         vim.lsp.handlers["$/progress"] = java.handle_progress
       end
    end
 end
