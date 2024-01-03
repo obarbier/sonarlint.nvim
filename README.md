@@ -9,6 +9,12 @@ Extensions for the built-in [Language Server Protocol][1] support in
 
 ![Demo of sonarlint.nvim on sonarlint-language-server it self](doc/demo.gif)
 
+# Required Third Party Plugins:
+
+For Java projects [`nvim-jdtls`][nvim-jdtls] is required to resolve classpath
+configurations that is then required to configure sonarlint-language-server as
+expected.
+
 # Warning :warning:
 
 This repository is work in progress and the API is likely to change.
@@ -65,7 +71,6 @@ require('sonarlint').setup({
       -- Tested and working
       'python',
       'cpp',
-      -- Requires nvim-jdtls, otherwise an error message will be printed
       'java',
    }
 })
@@ -103,7 +108,6 @@ require('sonarlint').setup({
       -- Tested and working
       'python',
       'cpp',
-      -- Requires nvim-jdtls, otherwise an error message will be printed
       'java',
    }
 })
@@ -112,3 +116,4 @@ require('sonarlint').setup({
 [1]: https://microsoft.github.io/language-server-protocol/
 [2]: https://neovim.io/
 [3]: https://github.com/SonarSource/sonarlint-language-server
+[nvim-jdtls]: https://github.com/mfussenegger/nvim-jdtls

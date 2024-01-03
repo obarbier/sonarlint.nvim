@@ -216,11 +216,13 @@ function M.setup(config)
    })
 
    if java then
-      local ok, jdtls_util = pcall(require, "jdtls.util")
+      local ok, jdtls_util = pcall(function()
+         return require("jdtls.util")
+      end)
       if not ok then
          vim.notify(
             "nvim-jdtls isn't available and is required for analyzing Java files. Make sure to install it",
-            vim.log.levels.ERROR
+            vim.log.levels.WARN
          )
          return
       end
