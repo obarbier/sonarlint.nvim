@@ -50,7 +50,7 @@ function M.get_java_config_handler(err, uri)
       sourceLevel = "11",
       classpath = classpaths_result.classpaths or {},
       isTest = is_test_file,
-      vmLocation = get_jdtls_runtime()
+      vmLocation = get_jdtls_runtime(),
    }
 end
 
@@ -64,7 +64,7 @@ function get_jdtls_runtime()
    local runtimes = (jdtls.config.settings.java.configuration or {}).runtimes or {}
 
    for i, runtime in ipairs(runtimes) do
-      if runtime.default == true then 
+      if runtime.default == true then
          return runtime.path
       end
    end
