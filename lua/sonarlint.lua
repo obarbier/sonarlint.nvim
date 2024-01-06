@@ -57,10 +57,7 @@ local function start_sonarlint_lsp(user_config)
       }
    end
 
-   config.handlers["sonarlint/isIgnoredByScm"] = function(...)
-      -- TODO check if the file is ignored by the SCM
-      return false
-   end
+   config.handlers["sonarlint/isIgnoredByScm"] = require("sonarlint.scm").is_ignored_by_scm
 
    config.handlers["sonarlint/getJavaConfig"] = java.get_java_config_handler
 
@@ -166,6 +163,10 @@ function M.setup(config)
 
          vim.lsp.buf_attach_client(bufnr, M.client_id)
       end,
+   })
+
+   vim.api.nvim_create_autocmd({ "BufEnter", "LspAttach" }, {
+      callback = require("sonarlint.scm").check_git_branch_and_notify_lsp,
    })
 
    if attach_to_jdtls then

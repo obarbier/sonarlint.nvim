@@ -15,6 +15,12 @@ For Java projects [`nvim-jdtls`][nvim-jdtls] is required to resolve classpath
 configurations that is then required to configure sonarlint-language-server as
 expected.
 
+For certain features, e.g. Connected Mode, sonarlint-language-server needs to
+gather information about source code management (SCM). Therefore,
+sonarlint.nvim gathers these information via [gitsgins][gitsigns] plugin. If
+there is no gitsigns installed, sonarlint.nvim assumes that there is no SCM
+provider.
+
 # Warning :warning:
 
 This repository is work in progress and the API is likely to change.
@@ -117,3 +123,4 @@ require('sonarlint').setup({
 [2]: https://neovim.io/
 [3]: https://github.com/SonarSource/sonarlint-language-server
 [nvim-jdtls]: https://github.com/mfussenegger/nvim-jdtls
+[gitsgins]: https://github.com/lewis6991/gitsigns.nvim
