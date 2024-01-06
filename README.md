@@ -60,18 +60,6 @@ require('sonarlint').setup({
          '-stdio',
          '-analyzers', 'path/to/analyzer1.jar', 'path/to/analyzer2.jar', 'path/to/analyzer3.jar',
       },
-      -- All settings are optional
-      settings = {
-         -- The default for sonarlint is {}, this is just an example
-         sonarlint = {
-            rules = {
-               ['typescript:S101'] = { level = 'on', parameters = { format = '^[A-Z][a-zA-Z0-9]*$' } },
-               ['typescript:S103'] = { level = 'on', parameters = { maximumLineLength = 180 } },
-               ['typescript:S106'] = { level = 'on' },
-               ['typescript:S107'] = { level = 'on', parameters = { maximumFunctionParameters = 7 } }
-            }
-         }
-      }
    },
    filetypes = {
       -- Tested and working
@@ -96,18 +84,6 @@ require('sonarlint').setup({
          vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarpython.jar"),
          vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarcfamily.jar"),
          vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarjava.jar"),
-      },
-      -- All settings are optional
-      settings = {
-         -- The default for sonarlint is {}, this is just an example
-         sonarlint = {
-            rules = {
-               ['typescript:S101'] = { level = 'on', parameters = { format = '^[A-Z][a-zA-Z0-9]*$' } },
-               ['typescript:S103'] = { level = 'on', parameters = { maximumLineLength = 180 } },
-               ['typescript:S106'] = { level = 'on' },
-               ['typescript:S107'] = { level = 'on', parameters = { maximumFunctionParameters = 7 } }
-            }
-         }
       }
    },
    filetypes = {
@@ -119,8 +95,60 @@ require('sonarlint').setup({
 })
 ```
 
+# Settings
+
+## Compilation Database
+
+Analyzing C/C++ projects it is required to provide a [Compilation Database
+file][Compilation-Database] (see alse [here][SonarSource-Compilation-Database].
+Therefore, sonarlint.nvim tries to find the [Compilation
+Database][Compilation-Database] automatically within your workspace. If that
+doesn't work, you can provide it manually.
+
+```lua
+require('sonarlint').setup({
+   server = {
+      cmd = {
+         -- …
+      },
+      settings = {
+         sonarlint = {
+            pathToCompileCommands = "insert your path here"
+         }
+      }
+   },
+})
+```
+
+## Rules
+
+Rules can be configured, e.g. by turning them on or off, with following
+configuration.
+
+```lua
+require('sonarlint').setup({
+   server = {
+      cmd = {
+         -- …
+      },
+      settings = {
+         sonarlint = {
+            rules = {
+               ['typescript:S101'] = { level = 'on', parameters = { format = '^[A-Z][a-zA-Z0-9]*$' } },
+               ['typescript:S103'] = { level = 'on', parameters = { maximumLineLength = 180 } },
+               ['typescript:S106'] = { level = 'on' },
+               ['typescript:S107'] = { level = 'on', parameters = { maximumFunctionParameters = 7 } }
+            }
+         }
+      }
+   },
+})
+```
+
 [1]: https://microsoft.github.io/language-server-protocol/
 [2]: https://neovim.io/
 [3]: https://github.com/SonarSource/sonarlint-language-server
 [nvim-jdtls]: https://github.com/mfussenegger/nvim-jdtls
 [gitsgins]: https://github.com/lewis6991/gitsigns.nvim
+[SonarSource-Compilation-Database]: https://www.sonarsource.com/blog/alternative-way-to-configure-c-and-cpp-analysis/
+[Compilation-Database]: https://clang.llvm.org/docs/JSONCompilationDatabase.html
