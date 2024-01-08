@@ -25,7 +25,8 @@ function M.check_git_branch_and_notify_lsp(args)
 end
 
 function M.is_ignored_by_scm(err, file_uri)
-   local bufnr = vim.uri_to_bufnr(file_uri)
+   local uri = type(file_uri) == "table" and file_uri[1] or file_uri
+   local bufnr = vim.uri_to_bufnr(uri)
    local ok, gitsigns_status = pcall(function()
       return vim.api.nvim_buf_get_var(bufnr, "gitsigns_status_dict")
    end)
