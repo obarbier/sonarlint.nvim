@@ -1,6 +1,7 @@
 local M = {}
 
 M.classpaths_result = nil
+M._co = {}
 
 local utils = require("sonarlint.utils")
 
@@ -23,6 +24,11 @@ function M.handle_progress(err, msg, info)
    require("jdtls.util").with_classpaths(function(result)
       M.classpaths_result = result
 
+      for _, co in ipairs(M._co) do
+         coroutine.resume(co, M.classpaths_result)
+      end
+      M._co = {}
+
       local sonarlint = utils.get_sonarlint_client()
       sonarlint.notify("sonarlint/didClasspathUpdate", {
          projectUri = result.projectRoot,
@@ -30,46 +36,57 @@ function M.handle_progress(err, msg, info)
    end)
 end
 
-function M.get_java_config_handler(err, uri)
-   local is_test_file = false
-   if M.classpaths_result then
-      local err, is_test_file_result = require("jdtls.util").execute_command({
-         command = "java.project.isTestFile",
-         arguments = { uri },
-      })
-      is_test_file = is_test_file_result
-   end
+function M.get_java_config_handler(err, file_uri)
+   local uri = type(file_uri) == "table" and file_uri[1] or file_uri
 
-   local classpaths_result = M.classpaths_result or {}
+   if M.classpaths_result then
+      return request_settings(uri, M.classpaths_result)
+   else
+      local co = coroutine.create(function(classpaths_result)
+         return request_settings(uri, classpaths_result)
+      end)
+
+      table.insert(M._co, co)
+
+      return coroutine.yield(co)
+   end
+end
+
+function request_settings(uri, classpaths_result)
+   local bufnr = vim.uri_to_bufnr(uri)
+
+   local err, is_test_file = require("jdtls.util").execute_command({
+      command = "java.project.isTestFile",
+      arguments = { uri },
+   }, nil, bufnr)
+
+   local err, settings = require("jdtls.util").execute_command({
+      command = "java.project.getSettings",
+      arguments = {
+         uri,
+         {
+            "org.eclipse.jdt.core.compiler.source",
+            "org.eclipse.jdt.ls.core.vm.location",
+         },
+      },
+   }, nil, bufnr)
 
    local config = (utils.get_sonarlint_client() or {}).config or {}
+   local vm_location = nil
+   local source_level = nil
+
+   if settings then
+      vm_location = settings["org.eclipse.jdt.ls.core.vm.location"]
+      source_level = settings["org.eclipse.jdt.core.compiler.source"]
+   end
 
    return {
       projectRoot = classpaths_result.projectRoot or "file:" .. config.root_dir,
-      -- TODO: how to get source level from jdtls?
-      sourceLevel = "11",
+      sourceLevel = source_level or "11",
       classpath = classpaths_result.classpaths or {},
       isTest = is_test_file,
-      vmLocation = get_jdtls_runtime(),
+      vmLocation = vm_location,
    }
-end
-
-function get_jdtls_runtime()
-   local clients = vim.lsp.get_active_clients({ name = "jdtls" })
-   local jdtls = clients[1]
-   if not jdtls then
-      return nil
-   end
-
-   local runtimes = (jdtls.config.settings.java.configuration or {}).runtimes or {}
-
-   for i, runtime in ipairs(runtimes) do
-      if runtime.default == true then
-         return runtime.path
-      end
-   end
-
-   return runtimes[1].path
 end
 
 return M
