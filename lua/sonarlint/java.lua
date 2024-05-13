@@ -42,13 +42,16 @@ function M.get_java_config_handler(err, file_uri)
    if M.classpaths_result then
       return request_settings(uri, M.classpaths_result)
    else
+      local pco = coroutine.running()
       local co = coroutine.create(function(classpaths_result)
-         return request_settings(uri, classpaths_result)
+         local resp = request_settings(uri, classpaths_result)
+         coroutine.resume(pco, resp)
+         return resp
       end)
 
       table.insert(M._co, co)
 
-      return coroutine.yield(co)
+      return coroutine.yield()
    end
 end
 
