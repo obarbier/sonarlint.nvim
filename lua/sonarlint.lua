@@ -59,6 +59,11 @@ local function start_sonarlint_lsp(user_config)
 
    config.handlers["sonarlint/isIgnoredByScm"] = require("sonarlint.scm").is_ignored_by_scm
 
+   config.handlers["sonarlint/listFilesInFolder"] = require("sonarlint.autobinding").list_autobinding_files_in_folder
+   config.handlers["sonarlint/filterOutExcludedFiles"] = function(err, params)
+      return params
+   end
+
    config.handlers["sonarlint/getJavaConfig"] = java.get_java_config_handler
 
    config.handlers["sonarlint/needCompilationDatabase"] = function(err, uri)
