@@ -15,4 +15,10 @@ function M.get_sonarlint_client()
    return clients[1]
 end
 
+function M.get_jdtls_client()
+   local clients = vim.lsp.get_active_clients({ name = "jdtls" })
+
+   return clients[1]
+end
+
 return M
