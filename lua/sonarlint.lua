@@ -25,7 +25,7 @@ local function start_sonarlint_lsp(user_config)
    local config = vim.tbl_deep_extend("keep", user_config, {
       root_dir = vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true })[1]),
       capabilities = vim.lsp.protocol.make_client_capabilities(),
-      settings = { sonarlint = {} },
+      settings = { sonarlint = { rules = vim.empty_dict() } },
    })
 
    config.name = "sonarlint.nvim"
