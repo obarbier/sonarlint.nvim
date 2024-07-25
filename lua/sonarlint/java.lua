@@ -80,7 +80,7 @@ end
 function request_settings(uri)
    local bufnr = vim.uri_to_bufnr(uri)
 
-   local e, settings = require("jdtls.util").execute_command({
+   local e, settings = require("sonarlint.utils.jdtls").execute_command({
       command = "java.project.getSettings",
       arguments = {
          uri,
@@ -109,7 +109,7 @@ function request_settings(uri)
       is_test = false
       options = vim.fn.json_encode({ scope = "runtime" })
    else
-      local err, is_test_file = require("jdtls.util").execute_command(is_test_file_cmd, nil, bufnr)
+      local err, is_test_file = require("sonarlint.utils.jdtls").execute_command(is_test_file_cmd, nil, bufnr)
       is_test = is_test_file
       assert(not err, vim.inspect(err))
       options = vim.fn.json_encode({
@@ -120,7 +120,7 @@ function request_settings(uri)
       command = "java.project.getClasspaths",
       arguments = { uri, options },
    }
-   local err1, resp = require("jdtls.util").execute_command(cmd, nil, bufnr)
+   local err1, resp = require("sonarlint.utils.jdtls").execute_command(cmd, nil, bufnr)
    if err1 then
       print("Error executing java.project.getClasspaths: " .. err1.message)
    end

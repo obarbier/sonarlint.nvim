@@ -158,7 +158,7 @@ function M.setup(config)
       if attach_to_jdtls then
          client.config.handlers["sonarlint/getJavaConfig"] = java.get_java_config_handler
          local ok, _ = pcall(function()
-            return require("jdtls.util")
+            return require("sonarlint.utils.jdtls")
          end)
          if not ok then
             vim.notify(
